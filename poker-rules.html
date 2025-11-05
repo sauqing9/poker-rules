@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rules-Poker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f0f8ff, #e6e6fa);
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #4a4a4a;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 3em;
+            color: #8a2be2;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        }
+        h2 {
+            font-size: 2em;
+            color: #5f9ea0;
+        }
+        .section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #fdfdfd;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        .card-display {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+        .card-img {
+            width: 70px;
+            height: 95px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            background-color: #fff;
+            display: inline-flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px;
+            font-size: 1.2em;
+            font-weight: bold;
+            position: relative;
+        }
+        .card-img.red { color: #ff0000; }
+        .card-img.black { color: #000000; }
+        .card-rank { position: absolute; top: 5px; left: 5px; }
+        .card-rank-bottom { position: absolute; bottom: 5px; right: 5px; transform: rotate(180deg); }
+        .card-suit { font-size: 1.8em; line-height: 1; }
+        .suit-small-top { position: absolute; top: 25px; left: 5px; font-size: 0.8em; }
+        .suit-small-bottom { position: absolute; bottom: 25px; right: 5px; transform: rotate(180deg); font-size: 0.8em; }
+
+        .suit-heart::before { content: '♥'; }
+        .suit-diamond::before { content: '♦'; }
+        .suit-club::before { content: '♣'; }
+        .suit-spade::before { content: '♠'; }
+
+        .suit-heart-small::before { content: '♥'; }
+        .suit-diamond-small::before { content: '♦'; }
+        .suit-club-small::before { content: '♣'; }
+        .suit-spade-small::before { content: '♠'; }
+
+        .suit-main { font-size: 2.5em; line-height: 1; }
+
+        .suits-comparison {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            display: flex; /* Tambahan untuk responsif */
+            flex-wrap: wrap; /* Tambahan untuk responsif */
+            justify-content: center; /* Tambahan untuk responsif */
+            gap: 5px; /* Tambahan untuk responsif */
+        }
+        .suits-comparison span {
+            margin: 0 5px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: #f2f2f2;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+        .suits-comparison .diamond { color: #ff0000; }
+        .suits-comparison .club { color: #000000; }
+        .suits-comparison .heart { color: #ff0000; }
+        .suits-comparison .spade { color: #000000; }
+        
+        /* PENTING UNTUK TABEL RESPONSIVE */
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch; /* Scroll halus di iOS */
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .combo-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1000px; /* Paksa tabel jadi lebar agar bisa di-scroll */
+        }
+        .combo-table th, .combo-table td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        .combo-table th {
+            background-color: #6a5acd;
+            color: white;
+            font-size: 1.1em;
+            text-transform: uppercase;
+        }
+        .combo-table tr:nth-child(even) { background-color: #f9f9f9; }
+        .combo-table tr:hover { background-color: #f1f1f1; }
+        .combo-table td img { max-width: 100px; height: auto; vertical-align: middle; }
+        .combo-title { font-weight: bold; color: #8a2be2; }
+        .combo-description { font-style: italic; color: #555; }
+        .combo-counter { font-size: 0.9em; color: #666; }
+        .combo-card-group { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+        .card-small {
+            width: 40px;
+            height: 60px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+            background-color: #fff;
+            display: inline-flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px;
+            font-size: 0.8em;
+            font-weight: bold;
+            position: relative;
+        }
+        .card-small.red { color: #ff0000; }
+        .card-small.black { color: #000000; }
+        .card-small .card-rank { top: 3px; left: 3px; font-size: 0.9em; }
+        .card-small .card-rank-bottom { bottom: 3px; right: 3px; font-size: 0.9em; }
+        .card-small .suit-main { font-size: 1.5em; }
+
+        .dropdown-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .dropdown-section label {
+            font-size: 1.2em;
+            margin-right: 10px;
+            color: #4a4a4a;
+        }
+        .dropdown-section select {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 1em;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .dropdown-section button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            background-color: #8a2be2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .dropdown-section button:hover {
+            background-color: #6a1ac2;
+        }
+        .hyperlink-bomb {
+            color: #8a2be2;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .hyperlink-bomb:hover {
+            color: #6a1ac2;
+        }
+
+        /* ======================================= */
+        /* == ATURAN RESPONSIVE UNTUK HP (MOBILE) == */
+        /* ======================================= */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px; /* Kurangi padding di HP */
+            }
+            .container {
+                padding: 15px; /* Kurangi padding di HP */
+            }
+            h1 {
+                font-size: 2.2em; /* Kecilkan judul */
+            }
+            h2 {
+                font-size: 1.6em; /* Kecilkan sub-judul */
+            }
+            .section {
+                padding: 15px; /* Kurangi padding section */
+            }
+
+            /* Atur ulang urutan kartu di atas */
+            .card-img {
+                width: 50px; /* Kecilkan kartu */
+                height: 70px;
+                font-size: 0.9em;
+            }
+            .card-img .suit-main {
+                font-size: 1.8em;
+            }
+
+            /* Atur ulang bagian dropdown pencarian */
+            .dropdown-section label {
+                display: block; /* Buat label jadi 1 baris sendiri */
+                margin-right: 0;
+                margin-bottom: 8px; /* Kasih jarak ke dropdown */
+            }
+            .dropdown-section select,
+            .dropdown-section button {
+                width: 100%; /* Buat dropdown & tombol jadi full width */
+                margin: 5px 0; /* Atur jarak atas bawah */
+                box-sizing: border-box; /* Biar padding tidak merusak width */
+            }
+            
+            /* Atur ulang perbandingan lambang */
+            .suits-comparison {
+                font-size: 1em;
+                gap: 5px;
+            }
+            .suits-comparison span {
+                padding: 5px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Rules-Poker</h1>
+
+        <div class="dropdown-section">
+            <label for="combo-selector">Pencarian Kombo:</label>
+            <select id="combo-selector">
+                <option value="">Pilih Kombo</option>
+                <option value="one-card">1. One-Card</option>
+                <option value="1-pair">2. 1-Pair</option>
+                <option value="bro-sis">3. Bro-Sis</option>
+                <option value="seri">4. Seri</option>
+                <option value="seri-buntut">5. Seri Buntut</option>
+                <option value="four-of-a-kind">6. 4 of a Kind</option>
+                <option value="straight-flush">7. Straight Flush</option>
+                <option value="tris">8. Tris</option>
+                <option value="full-house">9. Full House/Polo</option>
+                <option value="flush">10. Flush</option>
+                <option value="straight">11. Straight</option>
+                <option value="bomb">12. Bomb</option>
+            </select>
+            <button onclick="goToCombo()">Lihat Kombo</button>
+        </div>
+
+        <div class="section">
+            <h2>Urutan Kartu Remi (Terendah ke Tertinggi)</h2>
+            <div class="card-display">
+                <div class="card-img black"><span class="card-rank">3</span><span class="suit-main suit-club"></span><span class="card-rank-bottom">3</span></div>
+                <div class="card-img black"><span class="card-rank">4</span><span class="suit-main suit-club"></span><span class="card-rank-bottom">4</span></div>
+                <div class="card-img black"><span class="card-rank">5</span><span class="suit-main suit-club"></span><span class="card-rank-bottom">5</span></div>
+                <div class="card-img black"><span class="card-rank">6</span><span class="suit-main suit-club"></span><span class="card-rank-bottom">6</span></div>
+                <div class="card-img black"><span class="card-rank">7</span><span class="suit-main suit-club"></span><span class="card-rank-bottom">7</span></div>
+                <div class="card-img black"><span class="card-rank">8</span><span class="suit-main suit-club"></span><span class="card-rank-bottom">8</span></div>
+                <div class="card-img black"><span class="card-rank">9</span><span class="suit-main suit-club"></span><span class="card-rank-bottom">9</span></div>
+                <div class="card-img black"><span class="card-rank">10</span><span class="suit-main suit-club"></span><span class="card-rank-bottom">10</span></div>
+                <div class="card-img black"><span class="card-rank">J</span><span class="suit-main suit-club"></span><span class="card-rank-bottom">J</span></div>
+                <div class="card-img black"><span class="card-rank">Q</span><span class="suit-main suit-club"></span><span class="card-rank-bottom">Q</span></div>
+                <div class="card-img black"><span class="card-rank">K</span><span class="suit-main suit-club"></span><span class="card-rank-bottom">K</span></div>
+                <div class="card-img red"><span class="card-rank">A</span><span class="suit-main suit-heart"></span><span class="card-rank-bottom">A</span></div>
+                <div class="card-img red"><span class="card-rank">2</span><span class="suit-main suit-heart"></span><span class="card-rank-bottom">2</span></div>
+            </div>
+            <p style="text-align: center; font-size: 0.9em; color: #777;">(Contoh di atas menggunakan lambang acak. Urutan berlaku untuk semua lambang.)</p>
+        </div>
+
+        <div class="section">
+            <h2>Perbandingan Lambang (Terendah ke Tertinggi)</h2>
+            <div class="suits-comparison">
+                <span class="diamond">♦ Diamond</span> <span>&lt;</span>
+                <span class="club">♣ Keriting</span> <span>&lt;</span>
+                <span class="heart">♥ Hati</span> <span>&lt;</span>
+                <span class="spade">♠ Sekop</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Kombinasi Kartu Poker</h2>
+            <div class="table-wrapper">
+                <table class="combo-table">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Kombo</th>
+                            <th>Gambar Contoh</th>
+                            <th>Penjelasan</th>
+                            <th>Counter</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr id="one-card">
+                            <td>1.</td>
+                            <td class="combo-title">One-Card</td>
+                            <td>
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">4</span><span class="suit-main suit-diamond"></span></div>
+                                </div>
+                            </td>
+                            <td class="combo-description">Jalan 1 kartu.</td>
+                            <td class="combo-counter">
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">4</span><span class="suit-main suit-heart"></span></div>
+                                    <span style="font-size: 0.8em;">(Angka sama, lambang lebih tinggi)</span>
+                                </div>
+                                <br>
+                                <div class="combo-card-group">
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-club"></span></div>
+                                    <span style="font-size: 0.8em;">(Angka lebih besar, lambang bebas)</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="1-pair">
+                            <td>2.</td>
+                            <td class="combo-title">1-Pair</td>
+                            <td>
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">4</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">4</span><span class="suit-main suit-heart"></span></div>
+                                </div>
+                            </td>
+                            <td class="combo-description">Jalan 2 kartu dengan angka yang sama.</td>
+                            <td class="combo-counter">
+                                <div class="combo-card-group">
+                                    <div class="card-small black"><span class="card-rank">4</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">4</span><span class="suit-main suit-spade"></span></div>
+                                    <span style="font-size: 0.8em;">(1-Pair angka sama, lambang terakhir lebih tinggi)</span>
+                                </div>
+                                <br>
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-club"></span></div>
+                                    <span style="font-size: 0.8em;">(1-Pair angka lebih besar, lambang bebas)</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="bro-sis">
+                            <td>3.</td>
+                            <td class="combo-title">Bro-Sis</td>
+                            <td>
+                                <div class="combo-card-group">
+                                    <div class="card-small black"><span class="card-rank">4</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small red"><span class="card-rank">4</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-heart"></span></div>
+                                </div>
+                            </td>
+                            <td class="combo-description">2 pasang 1-Pair yang angkanya bersebelahan, seperti 1-Pair 5-6 atau 1-Pair 6-7.</td>
+                            <td class="combo-counter">
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">4</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small black"><span class="card-rank">4</span><span class="suit-main suit-spade"></span></div>
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-spade"></span></div>
+                                    <span style="font-size: 0.8em;">(Bro-Sis dengan angka sama, namun angka terakhir memiliki lambang yang lebih tinggi)</span>
+                                </div>
+                                <br>
+                                <div class="combo-card-group">
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-spade"></span></div>
+                                    <div class="card-small red"><span class="card-rank">6</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">6</span><span class="suit-main suit-heart"></span></div>
+                                    <span style="font-size: 0.8em;">(Bro-Sis yang angkanya lebih besar)</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="seri">
+                            <td>4.</td>
+                            <td class="combo-title">Seri</td>
+                            <td>
+                                <div class="combo-card-group">
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">6</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">7</span><span class="suit-main suit-club"></span></div>
+                                </div>
+                            </td>
+                            <td class="combo-description">3 kartu berurutan dengan lambang yang sama.</td>
+                            <td class="combo-counter">
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">6</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">7</span><span class="suit-main suit-heart"></span></div>
+                                    <span style="font-size: 0.8em;">(Seri angka sama, dengan lambang lebih tinggi)</span>
+                                </div>
+                                <br>
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">6</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">7</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">8</span><span class="suit-main suit-diamond"></span></div>
+                                    <span style="font-size: 0.8em;">(Seri angka yang lebih besar, lambang bebas)</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="seri-buntut">
+                            <td>5.</td>
+                            <td class="combo-title">Seri Buntut</td>
+                            <td>
+                                <div class="combo-card-group">
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">6</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">7</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small red"><span class="card-rank">4</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">4</span><span class="suit-main suit-heart"></span></div>
+                                </div>
+                            </td>
+                            <td class="combo-description">3 kartu berurutan dengan lambang yang sama, dibarengi 1-Pair sebagai buntutnya (1-Pair bebas berapa saja karena hanya pelengkap). Yang dilawan fokus ke Serinya, buntut 1-Pairnya bebas.</td>
+                            <td class="combo-counter">
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">6</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">7</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small black"><span class="card-rank">K</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small red"><span class="card-rank">K</span><span class="suit-main suit-diamond"></span></div>
+                                    <span style="font-size: 0.8em;">(Seri angka sama dengan lambang lebih tinggi, 1-Pair bebas)</span>
+                                </div>
+                                <br>
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">6</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">7</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">8</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">3</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small black"><span class="card-rank">3</span><span class="suit-main suit-spade"></span></div>
+                                    <span style="font-size: 0.8em;">(Seri angka yang lebih besar lambang bebas, 1-Pair bebas)</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="four-of-a-kind">
+                            <td>6.</td>
+                            <td class="combo-title">4 of a Kind</td>
+                            <td>
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-spade"></span></div>
+                                </div>
+                            </td>
+                            <td class="combo-description">4 kartu dengan angka yang sama, bisa menjadi <a href="#bomb" class="hyperlink-bomb">Bomb</a>.</td>
+                            <td class="combo-counter">
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">6</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small black"><span class="card-rank">6</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small red"><span class="card-rank">6</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small black"><span class="card-rank">6</span><span class="suit-main suit-spade"></span></div>
+                                    <span style="font-size: 0.8em;">(4 of a Kind dengan angka yang lebih besar)</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="straight-flush">
+                            <td>7.</td>
+                            <td class="combo-title">Straight Flush</td>
+                            <td>
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">4</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">6</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">7</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">8</span><span class="suit-main suit-heart"></span></div>
+                                </div>
+                            </td>
+                            <td class="combo-description">5 kartu berurutan dengan lambang yang sama, bisa dibilang Seri versi 5 kartu. Bisa menjadi <a href="#bomb" class="hyperlink-bomb">Bomb</a> juga.</td>
+                            <td class="combo-counter">
+                                <div class="combo-card-group">
+                                    <div class="card-small black"><span class="card-rank">4</span><span class="suit-main suit-spade"></span></div>
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-spade"></span></div>
+                                    <div class="card-small black"><span class="card-rank">6</span><span class="suit-main suit-spade"></span></div>
+                                    <div class="card-small black"><span class="card-rank">7</span><span class="suit-main suit-spade"></span></div>
+                                    <div class="card-small black"><span class="card-rank">8</span><span class="suit-main suit-spade"></span></div>
+                                    <span style="font-size: 0.8em;">(Straight Flush angka sama dengan lambang yang lebih tinggi)</span>
+                                </div>
+                                <br>
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">6</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">7</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">8</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">9</span><span class="suit-main suit-diamond"></span></div>
+                                    <span style="font-size: 0.8em;">(Straight Flush angka yang lebih besar lambang bebas)</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="tris">
+                            <td>8.</td>
+                            <td class="combo-title">Tris</td>
+                            <td>
+                                <div class="combo-card-group">
+                                    <div class="card-small black"><span class="card-rank">4</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small red"><span class="card-rank">4</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small black"><span class="card-rank">4</span><span class="suit-main suit-spade"></span></div>
+                                </div>
+                            </td>
+                            <td class="combo-description">3 kartu dengan angka yang sama.</td>
+                            <td class="combo-counter">
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-spade"></span></div>
+                                    <span style="font-size: 0.8em;">(Tris dengan angka lebih besar lambang bebas)</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="full-house">
+                            <td>9.</td>
+                            <td class="combo-title">Full House / Polo</td>
+                            <td>
+                                <div class="combo-card-group">
+                                    <div class="card-small black"><span class="card-rank">4</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small red"><span class="card-rank">4</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small black"><span class="card-rank">4</span><span class="suit-main suit-spade"></span></div>
+                                    <div class="card-small red"><span class="card-rank">K</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">K</span><span class="suit-main suit-heart"></span></div>
+                                </div>
+                            </td>
+                            <td class="combo-description">3 kartu dengan angka yang sama (Tris) dibarengi 1-Pair sebagai buntutnya (1-Pair bebas berapa saja karena hanya pelengkap). Yang dilawan fokus ke Tris-nya, buntut 1-Pair-nya bebas.</td>
+                            <td class="combo-counter">
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">6</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">7</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">8</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">9</span><span class="suit-main suit-heart"></span></div>
+                                    <span style="font-size: 0.8em;">(Straight Flush, 5 kartu berurutan dengan lambang sama)</span>
+                                </div>
+                                <br>
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-spade"></span></div>
+                                    <div class="card-small red"><span class="card-rank">3</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small black"><span class="card-rank">3</span><span class="suit-main suit-spade"></span></div>
+                                    <span style="font-size: 0.8em;">(Tris dengan angka lebih besar lambang bebas, 1-Pair bebas, bisa dibilang Full House yang lebih besar)</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="flush">
+                            <td>10.</td>
+                            <td class="combo-title">Flush</td>
+                            <td>
+                                <div class="combo-card-group">
+                                    <div class="card-small black"><span class="card-rank">4</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">7</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">8</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">J</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">Q</span><span class="suit-main suit-club"></span></div>
+                                </div>
+                            </td>
+                            <td class="combo-description">5 kartu bebas dengan lambang yang sama.</td>
+                            <td class="combo-counter">
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">6</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">7</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">8</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">9</span><span class="suit-main suit-heart"></span></div>
+                                    <span style="font-size: 0.8em;">(Straight Flush bebas angka bebas lambang)</span>
+                                </div>
+                                <br>
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-spade"></span></div>
+                                    <div class="card-small red"><span class="card-rank">4</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small black"><span class="card-rank">4</span><span class="suit-main suit-spade"></span></div>
+                                    <span style="font-size: 0.8em;">(Full House bebas dengan Tris berapa saja lambang bebas)</span>
+                                </div>
+                                <br>
+                                <div class="combo-card-group">
+                                    <div class="card-small black"><span class="card-rank">3</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">9</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">10</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">K</span><span class="suit-main suit-club"></span></div>
+                                    <span style="font-size: 0.8em;">(Flush lambang sama dengan angka terakhir yang lebih besar)</span>
+                                </div>
+                                <br>
+                                <div class="combo-card-group">
+                                    <div class="card-small black"><span class="card-rank">3</span><span class="suit-main suit-spade"></span></div>
+                                    <div class="card-small black"><span class="card-rank">4</span><span class="suit-main suit-spade"></span></div>
+                                    <div class="card-small black"><span class="card-rank">6</span><span class="suit-main suit-spade"></span></div>
+                                    <div class="card-small black"><span class="card-rank">8</span><span class="suit-main suit-spade"></span></div>
+                                    <div class="card-small black"><span class="card-rank">9</span><span class="suit-main suit-spade"></span></div>
+                                    <span style="font-size: 0.8em;">(Flush angka bebas dengan lambang yang lebih besar)</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="straight">
+                            <td>11.</td>
+                            <td class="combo-title">Straight</td>
+                            <td>
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">3</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small black"><span class="card-rank">4</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small red"><span class="card-rank">6</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small black"><span class="card-rank">7</span><span class="suit-main suit-club"></span></div>
+                                </div>
+                            </td>
+                            <td class="combo-description">5 kartu berurutan dengan lambang bebas.</td>
+                            <td class="combo-counter">
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">6</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">7</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">8</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">9</span><span class="suit-main suit-heart"></span></div>
+                                    <span style="font-size: 0.8em;">(Straight Flush bebas angka bebas lambang)</span>
+                                </div>
+                                <br>
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-spade"></span></div>
+                                    <div class="card-small red"><span class="card-rank">4</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small black"><span class="card-rank">4</span><span class="suit-main suit-spade"></span></div>
+                                    <span style="font-size: 0.8em;">(Full House bebas dengan Tris berapa saja lambang bebas)</span>
+                                </div>
+                                <br>
+                                <div class="combo-card-group">
+                                    <div class="card-small black"><span class="card-rank">3</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">6</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">9</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">10</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">K</span><span class="suit-main suit-club"></span></div>
+                                    <span style="font-size: 0.8em;">(Flush bebas dengan angka bebas dan lambang bebas)</span>
+                                </div>
+                                <br>
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">3</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">4</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small black"><span class="card-rank">6</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small black"><span class="card-rank">7</span><span class="suit-main suit-spade"></span></div>
+                                    <span style="font-size: 0.8em;">(Straight dengan urutan sama namun angka terakhir memiliki lambang lebih tinggi)</span>
+                                </div>
+                                <br>
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">4</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small black"><span class="card-rank">6</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small red"><span class="card-rank">7</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small red"><span class="card-rank">8</span><span class="suit-main suit-diamond"></span></div>
+                                    <span style="font-size: 0.8em;">(Straight dengan angka yang lebih besar lambang bebas)</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="bomb">
+                            <td>12.</td>
+                            <td class="combo-title">Bomb</td>
+                            <td>
+                                <div class="combo-card-group">
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-diamond"></span></div>
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-club"></span></div>
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small black"><span class="card-rank">5</span><span class="suit-main suit-spade"></span></div>
+                                    <span style="margin: 0 5px;">ATAU</span>
+                                    <div class="card-small red"><span class="card-rank">4</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">5</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">6</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">7</span><span class="suit-main suit-heart"></span></div>
+                                    <div class="card-small red"><span class="card-rank">8</span><span class="suit-main suit-heart"></span></div>
+                                </div>
+                            </td>
+                            <td class="combo-description">
+                                <a href="#four-of-a-kind" class="hyperlink-bomb">4 of a Kind</a> dan <a href="#straight-flush" class="hyperlink-bomb">Straight Flush</a> bisa menjadi Bomb. Yaitu kombo untuk meng-counter kartu 2 (Poker). Ketika lawan mengeluarkan Poker (kartu 2 tunggal), kita bisa mengeluarkan Bomb untuk meng-counter dan game pun selesai dengan pengebom memenangkan permainan, dan orang yang mengeluarkan Poker yang di-bomb kalah dalam permainan. Bomb tidak berlaku jika pemain mengeluarkan 2 kartu Poker (1-Pair Poker). Jika tidak ingin melakukan Bomb, kartu bisa digunakan sebagai kombo biasa untuk Four of a Kind dan Straight Flush seperti yang dijelaskan di atas.
+                            </td>
+                            <td class="combo-counter">
+                                Tidak ada, game selesai.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            </div>
+    </div>
+
+    <script>
+        function goToCombo() {
+            var selector = document.getElementById('combo-selector');
+            var selectedId = selector.value;
+            if (selectedId) {
+                document.getElementById(selectedId).scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    </script>
+</body>
+</html>
